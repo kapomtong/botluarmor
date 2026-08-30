@@ -102,20 +102,49 @@ function generateKeyCode() {
 
 // ---------- 3. POST /api/verify ----------
 // สคริปต์ Roblox เรียกทุกครั้งที่ผู้เล่นรันเกม เพื่อเช็กว่าอนุญาตให้รันสคริปต์จริงไหม
+// ตรวจสอบผ่าน key_code แทน discord_id (ต้อง redeem ผูกกับ discord ไว้ก่อนแล้ว)
 
 app.post('/api/verify', requireClientSecret, async (req, res) => {
   try {
-    const { discord_id, hwid } = req.body;
+    const { key_code, hwid } = req.body;
 
-    if (!discord_id || !hwid) {
-      return res.status(400).json({ success: false, error: 'Missing discord_id or hwid' });
+    if (!key_code || !hwid) {
+      return res.status(400).json({ success: false, error: 'Missing key_code or hwid' });
     }
 
-    // 1. ดึงข้อมูล user
+    // 1. หา key จาก key_code
+    const { data: keyRow, error: keyErr } = await supabase
+      .from('keys')
+      .select('*')
+      .eq('key_code', key_code)
+      .maybeSingle();
+
+    if (keyErr) throw keyErr;
+    if (!keyRow) {
+      return res.status(404).json({ success: false, error: 'Invalid Key' });
+    }
+
+    // 2. เช็กวันหมดอายุ
+    if (keyRow.duration_days !== -1 && keyRow.expires_at) {
+      const isExpired = new Date(keyRow.expires_at) < new Date();
+      if (isExpired) {
+        await supabase.from('keys').update({ status: 'expired' }).eq('id', keyRow.id);
+        return res.status(403).json({ success: false, error: 'Key expired' });
+      }
+    }
+
+    // 3. เช็กว่าคีย์ถูก redeem ผูกกับ discord แล้วหรือยัง
+    if (!keyRow.used_by_discord_id) {
+      return res.status(403).json({ success: false, error: 'Please redeem key first' });
+    }
+
+    const discordId = keyRow.used_by_discord_id;
+
+    // 4. ดึงข้อมูล user ที่ผูกกับคีย์นี้
     const { data: user, error: userErr } = await supabase
       .from('users')
       .select('*')
-      .eq('discord_id', discord_id)
+      .eq('discord_id', discordId)
       .maybeSingle();
 
     if (userErr) throw userErr;
@@ -123,18 +152,18 @@ app.post('/api/verify', requireClientSecret, async (req, res) => {
       return res.status(403).json({ success: false, error: 'User not found. Please redeem a key first.' });
     }
 
-    // 2. เช็กแบน
+    // 5. เช็กแบน
     if (user.is_blacklisted) {
       return res.status(403).json({ success: false, error: 'Banned', reason: user.ban_reason || 'No reason provided' });
     }
 
-    // 3. เช็ก HWID
+    // 6. เช็ก HWID
     if (!user.hwid) {
       // ยังไม่เคยผูก HWID -> ผูกให้เลยในครั้งแรก
       const { error: updateErr } = await supabase
         .from('users')
         .update({ hwid, last_login_at: new Date().toISOString() })
-        .eq('discord_id', discord_id);
+        .eq('discord_id', discordId);
       if (updateErr) throw updateErr;
     } else if (user.hwid !== hwid) {
       return res.status(403).json({ success: false, error: 'HWID Mismatch' });
@@ -143,36 +172,12 @@ app.post('/api/verify', requireClientSecret, async (req, res) => {
       await supabase
         .from('users')
         .update({ last_login_at: new Date().toISOString() })
-        .eq('discord_id', discord_id);
-    }
-
-    // 4. เช็กวันหมดอายุ (ผ่านตาราง keys ที่ user คนนี้ redeem ไว้ล่าสุด)
-    const { data: activeKey, error: keyErr } = await supabase
-      .from('keys')
-      .select('*')
-      .eq('used_by_discord_id', discord_id)
-      .eq('status', 'active')
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (keyErr) throw keyErr;
-
-    if (!activeKey) {
-      return res.status(403).json({ success: false, error: 'No active key found' });
-    }
-
-    if (activeKey.duration_days !== -1 && activeKey.expires_at) {
-      const isExpired = new Date(activeKey.expires_at) < new Date();
-      if (isExpired) {
-        await supabase.from('keys').update({ status: 'expired' }).eq('id', activeKey.id);
-        return res.status(403).json({ success: false, error: 'Key expired' });
-      }
+        .eq('discord_id', discordId);
     }
 
     // บันทึก log
     await supabase.from('execution_logs').insert({
-      discord_id,
+      discord_id: discordId,
       action_type: 'EXECUTE_SCRIPT',
       ip_address: req.ip,
     });
@@ -388,7 +393,7 @@ app.post('/api/get-script', requireClientSecret, async (req, res) => {
       expires_at: activeKey.duration_days === -1 ? 'lifetime' : activeKey.expires_at,
       loader_url:
         process.env.LOADER_SCRIPT_URL ||
-        'https://pastebin.com/raw/5Qhj3iPb',
+        'https://raw.githubusercontent.com/kapomtong/botluarmor/refs/heads/main/loader.lua',
     });
   } catch (err) {
     console.error('get-script error:', err);
