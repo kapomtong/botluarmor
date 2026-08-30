@@ -182,7 +182,7 @@ app.post('/api/verify', requireClientSecret, async (req, res) => {
     return res.json({
       success: true,
       message: 'Access granted',
-      script: process.env.PROTECTED_SCRIPT_URL || 'https://your-cdn.com/protected/main.lua',
+      script: process.env.PROTECTED_SCRIPT_URL || 'https://pastebin.com/raw/hnJ98rZt',
     });
   } catch (err) {
     console.error('verify error:', err);
