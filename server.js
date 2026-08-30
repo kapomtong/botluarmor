@@ -323,6 +323,79 @@ app.post('/api/reset-hwid', requireClientSecret, async (req, res) => {
   }
 });
 
+// ---------- 5b. POST /api/get-script ----------
+// บอท Discord เรียกตอน user กดปุ่ม "Get Script"
+// เช็คสิทธิ์ก่อนเสมอ (ไม่แบน / มีคีย์ active / ยังไม่หมดอายุ) แล้วค่อยส่งคีย์กลับไปให้บอทใส่ให้ลูกค้า
+
+app.post('/api/get-script', requireClientSecret, async (req, res) => {
+  try {
+    const { discord_id } = req.body;
+
+    if (!discord_id) {
+      return res.status(400).json({ success: false, error: 'Missing discord_id' });
+    }
+
+    // 1. เช็ก user + สถานะแบน
+    const { data: user, error: userErr } = await supabase
+      .from('users')
+      .select('*')
+      .eq('discord_id', discord_id)
+      .maybeSingle();
+
+    if (userErr) throw userErr;
+    if (!user) {
+      return res.status(403).json({ success: false, error: 'User not found. Please redeem a key first.' });
+    }
+    if (user.is_blacklisted) {
+      return res.status(403).json({ success: false, error: 'Banned', reason: user.ban_reason || 'No reason provided' });
+    }
+
+    // 2. หาคีย์ active ล่าสุดของ user คนนี้
+    const { data: activeKey, error: keyErr } = await supabase
+      .from('keys')
+      .select('*')
+      .eq('used_by_discord_id', discord_id)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (keyErr) throw keyErr;
+    if (!activeKey) {
+      return res.status(403).json({ success: false, error: 'No active key found. Please redeem a key first.' });
+    }
+
+    // 3. เช็กวันหมดอายุ
+    if (activeKey.duration_days !== -1 && activeKey.expires_at) {
+      const isExpired = new Date(activeKey.expires_at) < new Date();
+      if (isExpired) {
+        await supabase.from('keys').update({ status: 'expired' }).eq('id', activeKey.id);
+        return res.status(403).json({ success: false, error: 'Key expired' });
+      }
+    }
+
+    // log
+    await supabase.from('execution_logs').insert({
+      discord_id,
+      action_type: 'GET_SCRIPT',
+      ip_address: req.ip,
+    });
+
+    // 4. ผ่านทุกเงื่อนไข -> ส่งคีย์ของ user คนนี้กลับไปให้บอทประกอบสคริปต์
+    return res.json({
+      success: true,
+      key_code: activeKey.key_code,
+      expires_at: activeKey.duration_days === -1 ? 'lifetime' : activeKey.expires_at,
+      loader_url:
+        process.env.LOADER_SCRIPT_URL ||
+        'https://raw.githubusercontent.com/kapomtong/botluarmor/main/loader.lua',
+    });
+  } catch (err) {
+    console.error('get-script error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 // ---------- 6. POST /api/admin/generate-key ----------
 // เฉพาะ Admin เรียกได้ (ต้องแนบ x-admin-key ที่ถูกต้อง)
 
@@ -447,7 +520,12 @@ client.on('interactionCreate', async (interaction) => {
           .setCustomId('reset_hwid_button')
           .setLabel('Reset HWID')
           .setEmoji('🔄')
-          .setStyle(ButtonStyle.Primary)
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('get_script_button')
+          .setLabel('Get Script')
+          .setEmoji('📜')
+          .setStyle(ButtonStyle.Secondary)
       );
 
       await interaction.channel.send({ embeds: [panelEmbed], components: [row] });
@@ -579,6 +657,44 @@ client.on('interactionCreate', async (interaction) => {
         .setTimestamp();
 
       return interaction.editReply({ embeds: [resetEmbed] });
+    }
+    // ===================================================
+    // 6. Button: Get Script -> เชคสิทธิ์ก่อน แล้วประกอบสคริปต์ + ใส่คีย์ลูกค้าให้อัตโนมัติ
+    // ===================================================
+    if (interaction.isButton() && interaction.customId === 'get_script_button') {
+      const discordId = interaction.user.id;
+
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+      const result = await callApi('/api/get-script', { discord_id: discordId });
+
+      if (!result.ok) {
+        return interaction.editReply({
+          content: `❌ ดึงสคริปต์ไม่สำเร็จ: \`${result.error}\``,
+        });
+      }
+
+      const expiresText =
+        result.data.expires_at === 'lifetime'
+          ? 'ตลอดชีพ (Lifetime)'
+          : new Date(result.data.expires_at).toLocaleString('th-TH');
+
+      const scriptSnippet = [
+        `getgenv().Key = "${result.data.key_code}"`,
+        `loadstring(game:HttpGet("${result.data.loader_url}"))()`,
+      ].join('\n');
+
+      const scriptEmbed = new EmbedBuilder()
+        .setColor(0x5865f2)
+        .setTitle('📜 สคริปต์ของคุณ')
+        .setDescription('ระบบเชคสิทธิ์ผ่านแล้ว คีย์ของคุณถูกใส่ให้อัตโนมัติ คัดลอกโค้ดด้านล่างไปวางใน Executor ได้เลย')
+        .addFields({ name: 'หมดอายุ', value: expiresText })
+        .setTimestamp();
+
+      return interaction.editReply({
+        embeds: [scriptEmbed],
+        content: `\`\`\`lua\n${scriptSnippet}\n\`\`\``,
+      });
     }
   } catch (err) {
     console.error('interaction error:', err);
