@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Key System — Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+  <!-- ================= LOGIN SCREEN ================= -->
+  <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
+      <h1 class="text-xl font-semibold mb-1">🔐 Admin Login</h1>
+      <p class="text-slate-400 text-sm mb-6">กรอก Admin API Key เพื่อเข้าใช้งาน Dashboard</p>
+      <input id="adminKeyInput" type="password" placeholder="Admin API Key"
+        class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 mb-3 outline-none focus:border-indigo-500 text-sm" />
+      <button onclick="login()"
+        class="w-full bg-indigo-600 hover:bg-indigo-500 transition rounded-lg py-2.5 font-medium text-sm">
+        เข้าสู่ระบบ
+      </button>
+      <p id="loginError" class="text-red-400 text-xs mt-3 hidden"></p>
+    </div>
+  </div>
+
+  <!-- ================= DASHBOARD ================= -->
+  <div id="dashboard" class="hidden">
+    <div class="flex min-h-screen">
+      <!-- Sidebar -->
+      <aside class="w-56 bg-slate-900 border-r border-slate-800 p-4 flex flex-col">
+        <h2 class="text-lg font-semibold mb-6 px-2">🔑 Key System</h2>
+        <nav class="flex flex-col gap-1">
+          <button data-page="keys" onclick="switchPage('keys')"
+            class="nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium bg-indigo-600">จัดการ Keys</button>
+          <button data-page="users" onclick="switchPage('users')"
+            class="nav-btn text-left px-3 py-2 rounded-lg text-sm font-medium hover:bg-slate-800">จัดการ Users</button>
+        </nav>
+        <button onclick="logout()"
+          class="mt-auto text-left px-3 py-2 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+          ออกจากระบบ
+        </button>
+      </aside>
+
+      <!-- Main content -->
+      <main class="flex-1 p-6 overflow-x-auto">
+
+        <!-- ===== Keys Page ===== -->
+        <section id="page-keys">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-xl font-semibold">จัดการ Keys</h2>
+            <div class="flex gap-2 items-center">
+              <input id="genDuration" type="number" placeholder="วัน (-1=lifetime)"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm w-40 outline-none focus:border-indigo-500" />
+              <input id="genQuantity" type="number" placeholder="จำนวนคีย์" min="1" value="1"
+                class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm w-32 outline-none focus:border-indigo-500" />
+              <button onclick="genKey()"
+                class="bg-emerald-600 hover:bg-emerald-500 transition rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap">
+                + สร้างคีย์ใหม่
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-800/60 text-slate-400 text-left">
+                <tr>
+                  <th class="px-4 py-3">Key Code</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3">Duration</th>
+                  <th class="px-4 py-3">Used By</th>
+                  <th class="px-4 py-3">Expires At</th>
+                  <th class="px-4 py-3">Created At</th>
+                  <th class="px-4 py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="keysTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+            <p id="keysEmpty" class="text-slate-500 text-sm text-center py-8 hidden">ยังไม่มีข้อมูลคีย์</p>
+          </div>
+        </section>
+
+        <!-- ===== Users Page ===== -->
+        <section id="page-users" class="hidden">
+          <h2 class="text-xl font-semibold mb-4">จัดการ Users</h2>
+
+          <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-800/60 text-slate-400 text-left">
+                <tr>
+                  <th class="px-4 py-3">Discord ID</th>
+                  <th class="px-4 py-3">Status</th>
+                  <th class="px-4 py-3">Online</th>
+                  <th class="px-4 py-3">HWID</th>
+                  <th class="px-4 py-3">Resets Left</th>
+                  <th class="px-4 py-3">Last Login</th>
+                  <th class="px-4 py-3 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+            <p id="usersEmpty" class="text-slate-500 text-sm text-center py-8 hidden">ยังไม่มีข้อมูลผู้ใช้</p>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="hidden fixed bottom-6 right-6 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-sm shadow-xl"></div>
+
+<script>
+  let ADMIN_KEY = localStorage.getItem('admin_key') || '';
+
+  // ---------- Helpers ----------
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `fixed bottom-6 right-6 rounded-lg px-4 py-3 text-sm shadow-xl border ${
+      isError ? 'bg-red-900/80 border-red-700 text-red-100' : 'bg-slate-800 border-slate-700 text-slate-100'
+    }`;
+    t.classList.remove('hidden');
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => t.classList.add('hidden'), 3000);
+  }
+
+  async function apiCall(endpoint, method = 'GET', body = null) {
+    const res = await fetch(endpoint, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': ADMIN_KEY,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const data = await res.json().catch(() => ({ success: false, error: 'Invalid response' }));
+    if (res.status === 401) {
+      showToast('Admin Key ไม่ถูกต้อง หรือหมดสิทธิ์', true);
+      logout();
+      throw new Error('Unauthorized');
+    }
+    if (!data.success) throw new Error(data.error || 'Unknown error');
+    return data;
+  }
+
+  // ---------- Auth ----------
+  function login() {
+    const val = document.getElementById('adminKeyInput').value.trim();
+    if (!val) {
+      document.getElementById('loginError').textContent = 'กรุณากรอก Admin Key';
+      document.getElementById('loginError').classList.remove('hidden');
+      return;
+    }
+    ADMIN_KEY = val;
+    localStorage.setItem('admin_key', val);
+    enterDashboard();
+  }
+
+  function logout() {
+    ADMIN_KEY = '';
+    localStorage.removeItem('admin_key');
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('adminKeyInput').value = '';
+  }
+
+  async function enterDashboard() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    try {
+      await loadKeys();
+      await loadUsers();
+    } catch (e) {
+      // apiCall already handles 401 -> logout
+    }
+  }
+
+  // ---------- Navigation ----------
+  function switchPage(page) {
+    document.querySelectorAll('.nav-btn').forEach((btn) => {
+      btn.classList.toggle('bg-indigo-600', btn.dataset.page === page);
+      btn.classList.toggle('hover:bg-slate-800', btn.dataset.page !== page);
+    });
+    document.getElementById('page-keys').classList.toggle('hidden', page !== 'keys');
+    document.getElementById('page-users').classList.toggle('hidden', page !== 'users');
+  }
+
+  // ---------- Keys ----------
+  function statusBadge(status) {
+    const map = {
+      unused: 'bg-slate-700 text-slate-200',
+      active: 'bg-emerald-700/60 text-emerald-200',
+      expired: 'bg-amber-700/60 text-amber-200',
+      revoked: 'bg-red-700/60 text-red-200',
+    };
+    return `<span class="px-2 py-0.5 rounded-full text-xs ${map[status] || 'bg-slate-700 text-slate-200'}">${status}</span>`;
+  }
+
+  async function loadKeys() {
+    const { keys } = await apiCall('/api/admin/keys');
+    const tbody = document.getElementById('keysTableBody');
+    tbody.innerHTML = '';
+    document.getElementById('keysEmpty').classList.toggle('hidden', keys.length > 0);
+
+    keys.forEach((k) => {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-800/40';
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-mono">${k.key_code}</td>
+        <td class="px-4 py-3">${statusBadge(k.status)}</td>
+        <td class="px-4 py-3">${k.duration_days === -1 ? 'Lifetime' : k.duration_days + ' วัน'}</td>
+        <td class="px-4 py-3 font-mono text-slate-400">${k.used_by_discord_id || '-'}</td>
+        <td class="px-4 py-3 text-slate-400">${k.expires_at ? new Date(k.expires_at).toLocaleString('th-TH') : '-'}</td>
+        <td class="px-4 py-3 text-slate-400">${k.created_at ? new Date(k.created_at).toLocaleString('th-TH') : '-'}</td>
+        <td class="px-4 py-3 text-right">
+          <button onclick="revokeKey('${k.id}')"
+            class="bg-red-600/80 hover:bg-red-600 transition rounded-md px-3 py-1.5 text-xs font-medium ${
+              k.status === 'revoked' ? 'opacity-40 pointer-events-none' : ''
+            }">ยึดคีย์</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function genKey() {
+    const duration_days = parseInt(document.getElementById('genDuration').value);
+    const quantity = parseInt(document.getElementById('genQuantity').value) || 1;
+
+    if (isNaN(duration_days)) {
+      showToast('กรุณากรอกจำนวนวัน (-1 = lifetime)', true);
+      return;
+    }
+
+    try {
+      const data = await apiCall('/api/admin/generate-key', 'POST', { duration_days, quantity });
+      showToast(data.message);
+      document.getElementById('genDuration').value = '';
+      document.getElementById('genQuantity').value = '1';
+      await loadKeys();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
+  async function revokeKey(key_id) {
+    if (!confirm('ยืนยันยึดคีย์นี้?')) return;
+    try {
+      await apiCall('/api/admin/revoke-key', 'POST', { key_id });
+      showToast('ยึดคีย์เรียบร้อย');
+      await loadKeys();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
+  // ---------- Users ----------
+  async function loadUsers() {
+    const { users } = await apiCall('/api/admin/users');
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '';
+    document.getElementById('usersEmpty').classList.toggle('hidden', users.length > 0);
+
+    users.forEach((u) => {
+      const isRecent = u.last_heartbeat && (Date.now() - new Date(u.last_heartbeat).getTime()) < 90 * 1000; // 90 วิ
+      const online = u.is_online && isRecent;
+
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-800/40';
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-mono">${u.discord_id}</td>
+        <td class="px-4 py-3">${
+          u.is_blacklisted
+            ? '<span class="px-2 py-0.5 rounded-full text-xs bg-red-700/60 text-red-200">Banned</span>'
+            : '<span class="px-2 py-0.5 rounded-full text-xs bg-emerald-700/60 text-emerald-200">Active</span>'
+        }</td>
+        <td class="px-4 py-3">${
+          online
+            ? '<span class="inline-flex items-center gap-1.5 text-xs text-emerald-300"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Online</span>'
+            : '<span class="inline-flex items-center gap-1.5 text-xs text-slate-500"><span class="w-2 h-2 rounded-full bg-slate-600"></span>Offline</span>'
+        }</td>
+        <td class="px-4 py-3 font-mono text-slate-400">${u.hwid || '-'}</td>
+        <td class="px-4 py-3">${u.hwid_resets_left ?? '-'}</td>
+        <td class="px-4 py-3 text-slate-400">${u.last_login_at ? new Date(u.last_login_at).toLocaleString('th-TH') : '-'}</td>
+        <td class="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+          <button onclick="toggleBan('${u.discord_id}', ${!u.is_blacklisted})"
+            class="${u.is_blacklisted ? 'bg-slate-700 hover:bg-slate-600' : 'bg-red-600/80 hover:bg-red-600'} transition rounded-md px-3 py-1.5 text-xs font-medium">
+            ${u.is_blacklisted ? 'ปลดแบน' : 'แบน'}
+          </button>
+          <button onclick="forceResetHwid('${u.discord_id}')"
+            class="bg-indigo-600/80 hover:bg-indigo-600 transition rounded-md px-3 py-1.5 text-xs font-medium">รีเซ็ต HWID</button>
+          <button onclick="kickUser('${u.discord_id}')"
+            class="bg-amber-600/80 hover:bg-amber-600 transition rounded-md px-3 py-1.5 text-xs font-medium ${
+              online ? '' : 'opacity-40 pointer-events-none'
+            }">เตะออก</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function toggleBan(discord_id, banned) {
+    let reason = null;
+    if (banned) {
+      reason = prompt('เหตุผลการแบน (ไม่บังคับ):') || 'No reason provided';
+    }
+    try {
+      await apiCall('/api/admin/ban', 'POST', { discord_id, banned, reason });
+      showToast(banned ? 'แบนผู้ใช้เรียบร้อย' : 'ปลดแบนผู้ใช้เรียบร้อย');
+      await loadUsers();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
+  async function forceResetHwid(discord_id) {
+    if (!confirm('ยืนยันบังคับรีเซ็ต HWID ของผู้ใช้นี้?')) return;
+    try {
+      await apiCall('/api/admin/force-reset-hwid', 'POST', { discord_id });
+      showToast('รีเซ็ต HWID เรียบร้อย');
+      await loadUsers();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
+  async function kickUser(discord_id) {
+    const message = prompt('ข้อความตอนเตะ (ไม่บังคับ):') || 'You have been disconnected by an admin.';
+    try {
+      await apiCall('/api/admin/kick', 'POST', { discord_id, message });
+      showToast('สั่งเตะผู้ใช้เรียบร้อย (จะมีผลรอบ heartbeat ถัดไป)');
+      await loadUsers();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
+  // ---------- Init ----------
+  if (ADMIN_KEY) {
+    enterDashboard();
+  }
+  setInterval(() => {
+    if (ADMIN_KEY && !document.getElementById('page-users').classList.contains('hidden')) {
+      loadUsers().catch(() => {});
+    }
+  }, 20000);
+</script>
+</body>
+</html>
