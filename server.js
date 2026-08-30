@@ -464,7 +464,7 @@ app.post('/api/get-script', requireClientSecret, async (req, res) => {
       expires_at: activeKey.duration_days === -1 ? 'lifetime' : activeKey.expires_at,
       loader_url:
         process.env.LOADER_SCRIPT_URL ||
-        'https://raw.githubusercontent.com/kapomtong/botluarmor/refs/heads/main/loader.lua',
+        'https://pastebin.com/raw/5Qhj3iPb',
     });
   } catch (err) {
     console.error('get-script error:', err);
