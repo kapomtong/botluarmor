@@ -52,6 +52,7 @@ const axios = require('axios');
 
 const app = express();
 app.use(express.json());
+app.use(express.static('public')); // เสิร์ฟหน้า admin dashboard (public/index.html)
 
 // ใช้ Service Role Key เท่านั้นฝั่ง backend (ห้ามฝังใน Roblox/เว็บ/บอทเด็ดขาด)
 const supabase = createClient(
@@ -393,7 +394,7 @@ app.post('/api/get-script', requireClientSecret, async (req, res) => {
       expires_at: activeKey.duration_days === -1 ? 'lifetime' : activeKey.expires_at,
       loader_url:
         process.env.LOADER_SCRIPT_URL ||
-        'https://raw.githubusercontent.com/kapomtong/botluarmor/refs/heads/main/loader.lua',
+        'https://pastebin.com/raw/5Qhj3iPb',
     });
   } catch (err) {
     console.error('get-script error:', err);
@@ -430,6 +431,147 @@ app.post('/api/admin/generate-key', requireAdminKey, async (req, res) => {
     });
   } catch (err) {
     console.error('generate-key error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ---------- 6b. GET /api/admin/keys ----------
+// ดึงข้อมูลคีย์ทั้งหมด เรียงจากล่าสุด
+
+app.get('/api/admin/keys', requireAdminKey, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('keys')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return res.json({ success: true, keys: data });
+  } catch (err) {
+    console.error('admin/keys error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ---------- 6c. GET /api/admin/users ----------
+// ดึงข้อมูลผู้ใช้ทั้งหมด
+
+app.get('/api/admin/users', requireAdminKey, async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('last_login_at', { ascending: false });
+
+    if (error) throw error;
+
+    return res.json({ success: true, users: data });
+  } catch (err) {
+    console.error('admin/users error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ---------- 6d. POST /api/admin/ban ----------
+// แบน / ปลดแบน user (รับ discord_id, reason, และ banned: true/false)
+
+app.post('/api/admin/ban', requireAdminKey, async (req, res) => {
+  try {
+    const { discord_id, reason, banned } = req.body;
+
+    if (!discord_id || typeof banned !== 'boolean') {
+      return res.status(400).json({ success: false, error: 'Missing discord_id or banned (boolean)' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        is_blacklisted: banned,
+        ban_reason: banned ? (reason || 'No reason provided') : null,
+      })
+      .eq('discord_id', discord_id)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    return res.json({
+      success: true,
+      message: banned ? 'User banned' : 'User unbanned',
+      user: data,
+    });
+  } catch (err) {
+    console.error('admin/ban error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ---------- 6e. POST /api/admin/revoke-key ----------
+// เปลี่ยนสถานะคีย์เป็น 'revoked' (รับ key_id)
+
+app.post('/api/admin/revoke-key', requireAdminKey, async (req, res) => {
+  try {
+    const { key_id } = req.body;
+
+    if (!key_id) {
+      return res.status(400).json({ success: false, error: 'Missing key_id' });
+    }
+
+    const { data, error } = await supabase
+      .from('keys')
+      .update({ status: 'revoked' })
+      .eq('id', key_id)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({ success: false, error: 'Key not found' });
+    }
+
+    return res.json({ success: true, message: 'Key revoked', key: data });
+  } catch (err) {
+    console.error('admin/revoke-key error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+// ---------- 6f. POST /api/admin/force-reset-hwid ----------
+// บังคับรีเซ็ต HWID ของ user ทันที โดยไม่หักโควตา resets_left ของ user
+
+app.post('/api/admin/force-reset-hwid', requireAdminKey, async (req, res) => {
+  try {
+    const { discord_id } = req.body;
+
+    if (!discord_id) {
+      return res.status(400).json({ success: false, error: 'Missing discord_id' });
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ hwid: null })
+      .eq('discord_id', discord_id)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    await supabase.from('execution_logs').insert({
+      discord_id,
+      action_type: 'ADMIN_FORCE_RESET_HWID',
+      ip_address: req.ip,
+    });
+
+    return res.json({ success: true, message: 'HWID force reset', user: data });
+  } catch (err) {
+    console.error('admin/force-reset-hwid error:', err);
     return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 });
