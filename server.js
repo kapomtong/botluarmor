@@ -36,6 +36,11 @@ const {
 const axios = require('axios');
 
 const app = express();
+
+// Render ทำหน้าที่เป็น reverse proxy และส่ง X-Forwarded-For มาให้ Express
+// กำหนดเป็น 1 hop เพื่อให้ express-rate-limit อ่าน IP จริงได้อย่างถูกต้อง
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.static('public'));
 
