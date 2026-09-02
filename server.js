@@ -586,9 +586,22 @@ app.listen(PORT, () => {
   console.log(`Key System API is running on port ${PORT}`);
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+
+process.on('unhandledRejection', (err) => {
+  console.error('UNHANDLED REJECTION:', err);
+});
+
 const API_URL = process.env.API_URL;
 const CLIENT_SHARED_SECRET = process.env.CLIENT_SHARED_SECRET;
 const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
+
+console.log('DISCORD_TOKEN present:', !!process.env.DISCORD_TOKEN);
+console.log('DISCORD_TOKEN length:', process.env.DISCORD_TOKEN ? process.env.DISCORD_TOKEN.length : 0);
+console.log('CLIENT_SHARED_SECRET present:', !!CLIENT_SHARED_SECRET);
+console.log('ADMIN_API_KEY present:', !!ADMIN_API_KEY);
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -624,6 +637,7 @@ client.on('shardError', (error) => {
   console.error('Discord websocket error:', error);
 });
 
+console.log('Attempting Discord login...');
 client.login(process.env.DISCORD_TOKEN).catch((err) => {
   console.error('Discord login failed:', err.message);
 });
