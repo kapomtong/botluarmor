@@ -608,7 +608,15 @@ const client = new Client({
 });
 
 function isAdmin(interactionOrMessage) {
-  return interactionOrMessage.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+  // สำหรับ Slash command / Button
+  if (interactionOrMessage.memberPermissions) {
+    return interactionOrMessage.memberPermissions.has(PermissionFlagsBits.ManageGuild);
+  }
+  // สำหรับข้อความปกติ เช่น !setupkey
+  if (interactionOrMessage.member?.permissions) {
+    return interactionOrMessage.member.permissions.has(PermissionFlagsBits.ManageGuild);
+  }
+  return false;
 }
 
 async function callApi(endpoint, body, useAdminKey = false) {
