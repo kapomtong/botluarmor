@@ -25,26 +25,21 @@ const commands = [
     ),
 ].map((command) => command.toJSON());
 
+const CLIENT_ID = process.env.CLIENT_ID || '1544301856803651635';
+const GUILD_ID = process.env.GUILD_ID || '1535645704234475550';
+
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 
 (async () => {
   try {
     console.log(`Registering ${commands.length} slash command(s)...`);
 
-    if (process.env.GUILD_ID) {
-      await rest.put(
-        Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID),
-        { body: commands }
-      );
-      console.log(`Registered commands to guild ${process.env.GUILD_ID} (instant).`);
-    } else {
-      await rest.put(
-        Routes.applicationCommands(process.env.CLIENT_ID),
-        { body: commands }
-      );
-      console.log('Registered global commands (can take up to 1 hour to appear).');
-    }
+    await rest.put(
+      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
+      { body: commands }
+    );
+    console.log(`Registered commands to guild ${GUILD_ID} (instant).`);
   } catch (err) {
-    console.error('Failed to register commands:', err);
+    console.error('Failed to register commands:', err.message);
   }
 })();
