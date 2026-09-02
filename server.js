@@ -604,11 +604,11 @@ console.log('CLIENT_SHARED_SECRET present:', !!CLIENT_SHARED_SECRET);
 console.log('ADMIN_API_KEY present:', !!ADMIN_API_KEY);
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
+  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent],
 });
 
-function isAdmin(interaction) {
-  return interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
+function isAdmin(interactionOrMessage) {
+  return interactionOrMessage.memberPermissions?.has(PermissionFlagsBits.ManageGuild);
 }
 
 async function callApi(endpoint, body, useAdminKey = false) {
@@ -650,6 +650,55 @@ client
   });
 
 client.once('clientReady', () => clearTimeout(loginTimeout));
+
+client.on('messageCreate', async (message) => {
+  try {
+    if (message.content === '!setupkey') {
+      if (!isAdmin(message)) {
+        return message.reply({ content: '❌ This command is for Admins only' });
+      }
+
+      const panelEmbed = new EmbedBuilder()
+        .setColor(0x2f3136)
+        .setTitle('🔐 Key System Management')
+        .setDescription(
+          [
+            'Welcome to our key management system!',
+            '',
+            '🔑 **Redeem Key** — Enter your key to activate access',
+            '🔄 **Reset HWID** — Reset your hardware ID when switching computers',
+            '',
+            '> Click a button below to get started',
+          ].join('\n')
+        )
+        .setFooter({ text: 'Key System • Powered by Backend API' })
+        .setTimestamp();
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId('redeem_key_button')
+          .setLabel('Redeem Key')
+          .setEmoji('🔑')
+          .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+          .setCustomId('reset_hwid_button')
+          .setLabel('Reset HWID')
+          .setEmoji('🔄')
+          .setStyle(ButtonStyle.Primary),
+        new ButtonBuilder()
+          .setCustomId('get_script_button')
+          .setLabel('Get Script')
+          .setEmoji('📜')
+          .setStyle(ButtonStyle.Secondary)
+      );
+
+      await message.channel.send({ embeds: [panelEmbed], components: [row] });
+      await message.delete().catch(() => {});
+    }
+  } catch (err) {
+    console.error('message error:', err);
+  }
+});
 
 client.on('interactionCreate', async (interaction) => {
   try {
