@@ -629,10 +629,6 @@ client.once('clientReady', () => {
   console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.once('ready', () => {
-  console.log(`Logged in as ${client.user.tag}`);
-});
-
 client.on('shardError', (error) => {
   console.error('Discord websocket error:', error);
 });
@@ -654,7 +650,6 @@ client
   });
 
 client.once('clientReady', () => clearTimeout(loginTimeout));
-client.once('ready', () => clearTimeout(loginTimeout));
 
 client.on('interactionCreate', async (interaction) => {
   try {
