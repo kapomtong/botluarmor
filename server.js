@@ -638,9 +638,23 @@ client.on('shardError', (error) => {
 });
 
 console.log('Attempting Discord login...');
-client.login(process.env.DISCORD_TOKEN).catch((err) => {
-  console.error('Discord login failed:', err.message);
-});
+
+const loginTimeout = setTimeout(() => {
+  console.error('Discord login is taking too long (>20s). Likely a network/gateway connectivity issue from this host.');
+}, 20000);
+
+client
+  .login(process.env.DISCORD_TOKEN)
+  .then(() => {
+    console.log('Login promise resolved. Waiting for gateway ready event...');
+  })
+  .catch((err) => {
+    clearTimeout(loginTimeout);
+    console.error('Discord login failed:', err.message);
+  });
+
+client.once('clientReady', () => clearTimeout(loginTimeout));
+client.once('ready', () => clearTimeout(loginTimeout));
 
 client.on('interactionCreate', async (interaction) => {
   try {
