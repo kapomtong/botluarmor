@@ -1,186 +1,186 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Key</title>
+<title>Admin Portal</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   body { font-family: 'Inter', sans-serif; }
-  /* ซ่อน Scrollbar แต่ยังเลื่อนได้ */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
 </style>
 </head>
-<body class="bg-[#0f172a] text-slate-200 min-h-screen selection:bg-indigo-500/30">
+<body class="bg-[#09090b] text-zinc-300 min-h-screen selection:bg-zinc-800">
 
-  <!-- ================= LOGIN SCREEN ================= -->
   <div id="loginScreen" class="min-h-screen flex items-center justify-center px-4 relative overflow-hidden">
-    <!-- Background Glow effect -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-600/20 rounded-full blur-[100px]"></div>
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')] [mask-image:linear-gradient(to_bottom,white,transparent)] z-0"></div>
     
-    <div class="w-full max-w-sm bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-8 shadow-2xl relative z-10">
+    <div class="w-full max-w-sm bg-[#09090b] sm:bg-[#121214] sm:border border-zinc-800/80 rounded-2xl p-8 sm:shadow-2xl relative z-10">
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 mb-4 shadow-lg shadow-indigo-500/30">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#18181b] border border-zinc-800 mb-5 shadow-sm">
+          <svg class="w-5 h-5 text-zinc-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
         </div>
-        <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400">Admin Login</h1>
-        <p class="text-slate-400 text-sm mt-1">กรุณากรอก API Key เพื่อเข้าสู่ระบบ</p>
+        <h1 class="text-xl font-semibold text-zinc-100 tracking-tight">Admin Portal</h1>
+        <p class="text-zinc-500 text-sm mt-2">Enter your API key to continue</p>
       </div>
       
       <div class="space-y-4">
-        <input id="adminKeyInput" type="password" placeholder="••••••••••••"
-          class="w-full bg-slate-950/50 border border-slate-700 rounded-xl px-4 py-3 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition text-sm placeholder:text-slate-600" />
+        <input id="adminKeyInput" type="password" placeholder="API Key"
+          class="w-full bg-[#09090b] border border-zinc-800 rounded-lg px-4 py-2.5 outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all text-sm placeholder:text-zinc-600 text-zinc-200" />
         <button onclick="login()"
-          class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all rounded-xl py-3 font-semibold text-sm shadow-lg shadow-indigo-500/25 active:scale-[0.98]">
-          เข้าสู่ระบบ
+          class="w-full bg-zinc-100 hover:bg-white text-zinc-900 transition-all rounded-lg py-2.5 font-medium text-sm shadow-sm active:scale-[0.98]">
+          Sign In
         </button>
       </div>
-      <p id="loginError" class="text-red-400 text-xs mt-4 text-center hidden bg-red-400/10 py-2 rounded-lg"></p>
+      <p id="loginError" class="text-red-400 text-xs mt-4 text-center hidden bg-red-950/30 border border-red-900/50 py-2.5 rounded-lg"></p>
     </div>
   </div>
 
-  <!-- ================= DASHBOARD ================= -->
-  <div id="dashboard" class="hidden h-screen flex flex-col md:flex-row overflow-hidden">
+  <div id="dashboard" class="hidden h-screen flex flex-col md:flex-row overflow-hidden bg-[#09090b]">
     
-    <!-- Sidebar / Topnav -->
-    <aside class="md:w-64 bg-slate-900 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col md:h-full shrink-0 z-20 shadow-xl">
-      <div class="p-4 md:p-6 flex items-center justify-between md:block">
-        <h2 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 flex items-center gap-2">
-          <span>✨</span> KeySystem
+    <aside class="md:w-60 bg-[#09090b] border-b md:border-b-0 md:border-r border-zinc-800/80 flex flex-col md:h-full shrink-0 z-20">
+      <div class="p-5 md:p-6 flex items-center justify-between md:block">
+        <h2 class="text-base font-semibold text-zinc-100 flex items-center gap-2 tracking-tight">
+          <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"></path></svg>
+          System Core
         </h2>
-        <!-- Mobile menu toggle button could go here, but we'll use a responsive flex layout instead -->
       </div>
       
-      <nav class="flex md:flex-col gap-2 px-4 md:px-4 pb-4 md:pb-0 overflow-x-auto no-scrollbar md:flex-1">
+      <nav class="flex md:flex-col gap-1 px-3 md:px-3 pb-3 md:pb-0 overflow-x-auto no-scrollbar md:flex-1">
         <button data-page="keys" onclick="switchPage('keys')"
-          class="nav-btn flex-shrink-0 md:w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-indigo-600/10 text-indigo-400 border border-indigo-500/20">
-          <span class="flex items-center gap-2">🔑 จัดการ Keys</span>
+          class="nav-btn flex-shrink-0 md:w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-all bg-zinc-800 text-zinc-100">
+          <span class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+            Key Management
+          </span>
         </button>
         <button data-page="users" onclick="switchPage('users')"
-          class="nav-btn flex-shrink-0 md:w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-400 hover:bg-slate-800/50 hover:text-slate-200 border border-transparent">
-          <span class="flex items-center gap-2">👥 จัดการ Users</span>
+          class="nav-btn flex-shrink-0 md:w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-all text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200">
+          <span class="flex items-center gap-2.5">
+            <svg class="w-4 h-4 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            User Analytics
+          </span>
         </button>
       </nav>
 
-      <div class="hidden md:block p-4 mt-auto border-t border-slate-800/50">
-        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-red-500/10 hover:text-red-400 transition-colors">
+      <div class="hidden md:block p-4 mt-auto border-t border-zinc-800/80">
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium text-zinc-400 hover:bg-red-500/10 hover:text-red-400 transition-colors">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-          ออกจากระบบ
+          Sign Out
         </button>
       </div>
     </aside>
 
-    <!-- Main content -->
-    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-[#0a0f1c] scroll-smooth">
-      <div class="max-w-7xl mx-auto space-y-6">
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-[#09090b] scroll-smooth">
+      <div class="max-w-6xl mx-auto space-y-6">
 
-        <!-- ===== Keys Page ===== -->
-        <section id="page-keys" class="animate-[fadeIn_0.3s_ease-out]">
+        <section id="page-keys" class="animate-fade-in">
           
-          <!-- Stats Row -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-              <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Total Keys</p>
-              <h3 id="statTotalKeys" class="text-2xl font-bold text-slate-100">0</h3>
+            <div class="bg-[#121214] border border-zinc-800/80 rounded-xl p-5">
+              <p class="text-zinc-500 text-[11px] font-semibold uppercase tracking-wider mb-2">Total Keys</p>
+              <h3 id="statTotalKeys" class="text-2xl font-semibold text-zinc-100">0</h3>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-              <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Active Keys</p>
-              <h3 id="statActiveKeys" class="text-2xl font-bold text-emerald-400">0</h3>
+            <div class="bg-[#121214] border border-zinc-800/80 rounded-xl p-5">
+              <p class="text-zinc-500 text-[11px] font-semibold uppercase tracking-wider mb-2">Active Keys</p>
+              <h3 id="statActiveKeys" class="text-2xl font-semibold text-zinc-100">0</h3>
             </div>
           </div>
 
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div>
-              <h2 class="text-lg font-bold">คลังคีย์ (Key Management)</h2>
-              <p class="text-xs text-slate-400 mt-1">จัดการคีย์ทั้งหมดในระบบ สร้างหรือยึดคีย์ได้ที่นี่</p>
+              <h2 class="text-lg font-semibold text-zinc-100 tracking-tight">Key Management</h2>
+              <p class="text-sm text-zinc-500 mt-1">Generate new license keys or manage existing ones.</p>
             </div>
-            <div class="flex flex-wrap gap-2 items-center">
-              <input id="genDuration" type="number" placeholder="วัน (-1=ถาวร)"
-                class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm w-32 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
-              <input id="genQuantity" type="number" placeholder="จำนวน" min="1" value="1"
-                class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm w-24 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+            <div class="flex flex-wrap gap-2 items-center bg-[#121214] p-1.5 rounded-lg border border-zinc-800/80">
+              <input id="genDuration" type="number" placeholder="Days (-1=Lifetime)"
+                class="bg-[#09090b] border border-zinc-800 rounded-md px-3 py-1.5 text-sm w-36 outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600" />
+              <input id="genQuantity" type="number" placeholder="Amount" min="1" value="1"
+                class="bg-[#09090b] border border-zinc-800 rounded-md px-3 py-1.5 text-sm w-20 outline-none focus:border-zinc-600 transition-colors placeholder:text-zinc-600" />
               <button onclick="genKey()"
-                class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 transition-all rounded-lg px-4 py-2 text-sm font-semibold shadow-lg shadow-emerald-500/20 active:scale-95 whitespace-nowrap">
-                + สร้างคีย์
+                class="bg-zinc-100 hover:bg-white text-zinc-900 transition-all rounded-md px-4 py-1.5 text-sm font-medium active:scale-95 whitespace-nowrap">
+                Generate
               </button>
             </div>
           </div>
 
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-[#121214] border border-zinc-800/80 rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-sm whitespace-nowrap">
-                <thead class="bg-slate-950/50 text-slate-400 text-left text-xs uppercase tracking-wider">
+                <thead class="border-b border-zinc-800/80 bg-[#09090b]/50 text-zinc-500 text-left text-[11px] uppercase tracking-wider">
                   <tr>
-                    <th class="px-6 py-4 font-medium">Key Code</th>
-                    <th class="px-6 py-4 font-medium">Status</th>
-                    <th class="px-6 py-4 font-medium">Duration</th>
-                    <th class="px-6 py-4 font-medium">Used By</th>
-                    <th class="px-6 py-4 font-medium">Expires At</th>
-                    <th class="px-6 py-4 font-medium text-right">Action</th>
+                    <th class="px-5 py-3 font-semibold">Key Code</th>
+                    <th class="px-5 py-3 font-semibold">Status</th>
+                    <th class="px-5 py-3 font-semibold">Duration</th>
+                    <th class="px-5 py-3 font-semibold">Used By</th>
+                    <th class="px-5 py-3 font-semibold">Expires At</th>
+                    <th class="px-5 py-3 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody id="keysTableBody" class="divide-y divide-slate-800"></tbody>
+                <tbody id="keysTableBody" class="divide-y divide-zinc-800/50"></tbody>
               </table>
             </div>
-            <div id="keysEmpty" class="text-slate-500 text-sm flex flex-col items-center justify-center py-12 hidden">
-              <svg class="w-12 h-12 mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-              ยังไม่มีข้อมูลคีย์ในระบบ
+            <div id="keysEmpty" class="text-zinc-600 text-sm flex flex-col items-center justify-center py-16 hidden">
+              <svg class="w-8 h-8 mb-3 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+              No keys found in the system.
             </div>
           </div>
         </section>
 
-        <!-- ===== Users Page ===== -->
-        <section id="page-users" class="hidden animate-[fadeIn_0.3s_ease-out]">
+        <section id="page-users" class="hidden animate-fade-in">
           
-          <!-- Stats Row -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-              <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Total Users</p>
-              <h3 id="statTotalUsers" class="text-2xl font-bold text-slate-100">0</h3>
+            <div class="bg-[#121214] border border-zinc-800/80 rounded-xl p-5">
+              <p class="text-zinc-500 text-[11px] font-semibold uppercase tracking-wider mb-2">Total Users</p>
+              <h3 id="statTotalUsers" class="text-2xl font-semibold text-zinc-100">0</h3>
             </div>
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
-              <p class="text-slate-400 text-xs font-medium uppercase tracking-wider mb-1">Online Now</p>
-              <h3 id="statOnlineUsers" class="text-2xl font-bold text-indigo-400 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> 0
+            <div class="bg-[#121214] border border-zinc-800/80 rounded-xl p-5">
+              <p class="text-zinc-500 text-[11px] font-semibold uppercase tracking-wider mb-2">Online Now</p>
+              <h3 id="statOnlineUsers" class="text-2xl font-semibold text-zinc-100 flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> 0
               </h3>
             </div>
           </div>
 
-          <div class="flex items-center justify-between mb-6 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div class="flex items-center justify-between mb-6">
             <div>
-              <h2 class="text-lg font-bold">จัดการ Users</h2>
-              <p class="text-xs text-slate-400 mt-1">ดูสถานะผู้ใช้ แบน หรือรีเซ็ต HWID</p>
+              <h2 class="text-lg font-semibold text-zinc-100 tracking-tight">User Analytics</h2>
+              <p class="text-sm text-zinc-500 mt-1">Monitor users, manage bans, and reset hardware IDs.</p>
             </div>
           </div>
 
-          <div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+          <div class="bg-[#121214] border border-zinc-800/80 rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
               <table class="w-full text-sm whitespace-nowrap">
-                <thead class="bg-slate-950/50 text-slate-400 text-left text-xs uppercase tracking-wider">
+                <thead class="border-b border-zinc-800/80 bg-[#09090b]/50 text-zinc-500 text-left text-[11px] uppercase tracking-wider">
                   <tr>
-                    <th class="px-6 py-4 font-medium">Discord ID</th>
-                    <th class="px-6 py-4 font-medium">Account</th>
-                    <th class="px-6 py-4 font-medium">Activity</th>
-                    <th class="px-6 py-4 font-medium">HWID</th>
-                    <th class="px-6 py-4 font-medium">Resets</th>
-                    <th class="px-6 py-4 font-medium text-right">Action</th>
+                    <th class="px-5 py-3 font-semibold">Discord ID</th>
+                    <th class="px-5 py-3 font-semibold">Account</th>
+                    <th class="px-5 py-3 font-semibold">Activity</th>
+                    <th class="px-5 py-3 font-semibold">HWID</th>
+                    <th class="px-5 py-3 font-semibold">Resets</th>
+                    <th class="px-5 py-3 font-semibold text-right">Action</th>
                   </tr>
                 </thead>
-                <tbody id="usersTableBody" class="divide-y divide-slate-800"></tbody>
+                <tbody id="usersTableBody" class="divide-y divide-zinc-800/50"></tbody>
               </table>
             </div>
-            <div id="usersEmpty" class="text-slate-500 text-sm flex flex-col items-center justify-center py-12 hidden">
-              <svg class="w-12 h-12 mb-3 text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-              ยังไม่มีข้อมูลผู้ใช้
+            <div id="usersEmpty" class="text-zinc-600 text-sm flex flex-col items-center justify-center py-16 hidden">
+              <svg class="w-8 h-8 mb-3 text-zinc-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+              No users found.
             </div>
           </div>
           
-          <!-- Mobile Logout (Visible only on mobile bottom) -->
           <div class="md:hidden mt-8 mb-4 flex justify-center">
-             <button onclick="logout()" class="px-6 py-2 rounded-xl text-sm font-medium text-slate-400 bg-slate-900 border border-slate-800 hover:text-red-400">
-               ออกจากระบบ
+             <button onclick="logout()" class="px-6 py-2 rounded-lg text-sm font-medium text-zinc-400 bg-[#121214] border border-zinc-800 hover:text-red-400 transition-colors">
+               Sign Out
              </button>
           </div>
         </section>
@@ -189,36 +189,27 @@
     </main>
   </div>
 
-  <!-- Toast -->
-  <div id="toast" class="hidden fixed top-6 right-6 rounded-xl px-5 py-3.5 text-sm font-medium shadow-2xl z-50 transform transition-all duration-300"></div>
-
-<style>
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+  <div id="toast" class="hidden fixed bottom-6 right-6 rounded-lg px-4 py-3 text-sm font-medium shadow-xl z-50 transform transition-all duration-300"></div>
 
 <script>
   let ADMIN_KEY = localStorage.getItem('admin_key') || '';
 
-  // ---------- Helpers ----------
   function showToast(msg, isError = false) {
     const t = document.getElementById('toast');
     t.innerHTML = `<div class="flex items-center gap-2">
-      ${isError ? '<span>⚠️</span>' : '<span>✅</span>'}
+      ${isError ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>' : '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>'}
       <span>${msg}</span>
     </div>`;
-    t.className = `fixed top-6 right-6 rounded-xl px-5 py-3.5 text-sm font-medium shadow-2xl z-50 flex items-center border ${
-      isError ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
-    } backdrop-blur-md`;
+    t.className = `fixed bottom-6 right-6 rounded-lg px-4 py-3 text-sm font-medium shadow-2xl z-50 flex items-center border ${
+      isError ? 'bg-red-950/90 border-red-900 text-red-400' : 'bg-[#18181b] border-zinc-800 text-zinc-100'
+    }`;
     t.classList.remove('hidden');
     clearTimeout(window._toastTimer);
     window._toastTimer = setTimeout(() => {
-      t.classList.add('opacity-0', 'translate-y-[-10px]');
+      t.classList.add('opacity-0', 'translate-y-[10px]');
       setTimeout(() => {
         t.classList.add('hidden');
-        t.classList.remove('opacity-0', 'translate-y-[-10px]');
+        t.classList.remove('opacity-0', 'translate-y-[10px]');
       }, 300);
     }, 3000);
   }
@@ -234,7 +225,7 @@
     });
     const data = await res.json().catch(() => ({ success: false, error: 'Invalid response' }));
     if (res.status === 401) {
-      showToast('Session หมดอายุ หรือรหัสไม่ถูกต้อง', true);
+      showToast('Session expired or invalid key', true);
       logout();
       throw new Error('Unauthorized');
     }
@@ -242,12 +233,12 @@
     return data;
   }
 
-  // ---------- Auth ----------
   function login() {
     const val = document.getElementById('adminKeyInput').value.trim();
     if (!val) {
-      document.getElementById('loginError').textContent = 'กรุณากรอก Admin Key';
-      document.getElementById('loginError').classList.remove('hidden');
+      const err = document.getElementById('loginError');
+      err.textContent = 'API Key is required';
+      err.classList.remove('hidden');
       return;
     }
     ADMIN_KEY = val;
@@ -273,30 +264,27 @@
     } catch (e) {}
   }
 
-  // ---------- Navigation ----------
   function switchPage(page) {
     document.querySelectorAll('.nav-btn').forEach((btn) => {
       if(btn.dataset.page === page) {
-        btn.classList.add('bg-indigo-600/10', 'text-indigo-400', 'border-indigo-500/20');
-        btn.classList.remove('text-slate-400', 'hover:bg-slate-800/50', 'border-transparent');
+        btn.classList.add('bg-zinc-800', 'text-zinc-100');
+        btn.classList.remove('text-zinc-400', 'hover:bg-zinc-900', 'hover:text-zinc-200');
       } else {
-        btn.classList.remove('bg-indigo-600/10', 'text-indigo-400', 'border-indigo-500/20');
-        btn.classList.add('text-slate-400', 'hover:bg-slate-800/50', 'border-transparent');
+        btn.classList.remove('bg-zinc-800', 'text-zinc-100');
+        btn.classList.add('text-zinc-400', 'hover:bg-zinc-900', 'hover:text-zinc-200');
       }
     });
     document.getElementById('page-keys').classList.toggle('hidden', page !== 'keys');
     document.getElementById('page-users').classList.toggle('hidden', page !== 'users');
   }
 
-  // ---------- Keys ----------
   function statusBadge(status) {
-    const map = {
-      unused: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
-      active: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-      expired: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-      revoked: 'bg-red-500/10 text-red-400 border border-red-500/20',
-    };
-    return `<span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider ${map[status] || map.unused}">${status}</span>`;
+    const s = status.toLowerCase();
+    if (s === 'active') return `<span class="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active</span>`;
+    if (s === 'unused') return `<span class="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400"><span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>Unused</span>`;
+    if (s === 'expired') return `<span class="flex items-center gap-1.5 text-[11px] font-medium text-amber-500"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Expired</span>`;
+    if (s === 'revoked') return `<span class="flex items-center gap-1.5 text-[11px] font-medium text-red-400"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Revoked</span>`;
+    return `<span class="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400"><span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>${status}</span>`;
   }
 
   async function loadKeys() {
@@ -304,26 +292,34 @@
     const tbody = document.getElementById('keysTableBody');
     tbody.innerHTML = '';
     
-    // Update Stats
     document.getElementById('statTotalKeys').innerText = keys.length;
     document.getElementById('statActiveKeys').innerText = keys.filter(k => k.status === 'active').length;
-
     document.getElementById('keysEmpty').classList.toggle('hidden', keys.length > 0);
 
     keys.forEach((k) => {
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition-colors';
-      tr.innerHTML = `
-        <td class="px-6 py-4 font-mono text-indigo-200">${k.key_code}</td>
-        <td class="px-6 py-4">${statusBadge(k.status)}</td>
-        <td class="px-6 py-4">${k.duration_days === -1 ? '<span class="text-purple-400 font-medium">Lifetime</span>' : k.duration_days + ' วัน'}</td>
-        <td class="px-6 py-4 font-mono text-slate-400 text-xs">${k.used_by_discord_id || '<span class="text-slate-600">-</span>'}</td>
-        <td class="px-6 py-4 text-slate-400 text-xs">${k.expires_at ? new Date(k.expires_at).toLocaleString('th-TH') : '-'}</td>
-        <td class="px-6 py-4 text-right">
+      tr.className = 'hover:bg-zinc-800/30 transition-colors group';
+      
+      let actionBtn = '';
+      if (k.status === 'expired' || k.status === 'revoked') {
+        actionBtn = `
+          <button onclick="deleteKey('${k.id}')" class="text-zinc-500 hover:text-red-400 p-1.5 rounded-md hover:bg-red-500/10 transition-colors" title="Delete Key">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+          </button>`;
+      } else {
+        actionBtn = `
           <button onclick="revokeKey('${k.id}')"
-            class="bg-slate-800 hover:bg-red-500/20 text-slate-300 hover:text-red-400 border border-slate-700 hover:border-red-500/30 transition-all rounded-lg px-3 py-1.5 text-xs font-medium ${
-              k.status === 'revoked' ? 'opacity-40 pointer-events-none hidden' : ''
-            }">ยึดคีย์</button>
+            class="bg-transparent hover:bg-red-500/10 text-zinc-500 hover:text-red-400 border border-transparent hover:border-red-500/20 transition-all rounded-md px-2.5 py-1 text-xs font-medium">Revoke</button>`;
+      }
+
+      tr.innerHTML = `
+        <td class="px-5 py-3 font-mono text-zinc-300">${k.key_code}</td>
+        <td class="px-5 py-3">${statusBadge(k.status)}</td>
+        <td class="px-5 py-3 text-zinc-400">${k.duration_days === -1 ? 'Lifetime' : k.duration_days + ' Days'}</td>
+        <td class="px-5 py-3 font-mono text-zinc-500 text-[11px]">${k.used_by_discord_id || '-'}</td>
+        <td class="px-5 py-3 text-zinc-500 text-[11px]">${k.expires_at ? new Date(k.expires_at).toLocaleString('en-US') : '-'}</td>
+        <td class="px-5 py-3 text-right">
+          ${actionBtn}
         </td>`;
       tbody.appendChild(tr);
     });
@@ -334,7 +330,7 @@
     const quantity = parseInt(document.getElementById('genQuantity').value) || 1;
 
     if (isNaN(duration_days)) {
-      showToast('กรุณากรอกจำนวนวัน (-1 = lifetime)', true);
+      showToast('Please enter valid days (-1 for lifetime)', true);
       return;
     }
 
@@ -350,17 +346,27 @@
   }
 
   async function revokeKey(key_id) {
-    if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการยึดคีย์นี้? (ผู้ใช้จะถูกตัดสิทธิ์ทันที)')) return;
+    if (!confirm('Are you sure you want to revoke this key?')) return;
     try {
       await apiCall('/api/admin/revoke-key', 'POST', { key_id });
-      showToast('ยึดคีย์เรียบร้อยแล้ว');
+      showToast('Key revoked successfully');
       await loadKeys();
     } catch (e) {
       showToast(e.message, true);
     }
   }
 
-  // ---------- Users ----------
+  async function deleteKey(key_id) {
+    if (!confirm('Permanently delete this key from the database?')) return;
+    try {
+      await apiCall('/api/admin/delete-key', 'POST', { key_id });
+      showToast('Key deleted successfully');
+      await loadKeys();
+    } catch (e) {
+      showToast(e.message, true);
+    }
+  }
+
   async function loadUsers() {
     const { users } = await apiCall('/api/admin/users');
     const tbody = document.getElementById('usersTableBody');
@@ -374,50 +380,49 @@
       if(online) onlineCount++;
 
       const tr = document.createElement('tr');
-      tr.className = 'hover:bg-slate-800/30 transition-colors';
+      tr.className = 'hover:bg-zinc-800/30 transition-colors';
       tr.innerHTML = `
-        <td class="px-6 py-4 font-mono text-slate-300 text-xs">${u.discord_id}</td>
-        <td class="px-6 py-4">${
+        <td class="px-5 py-3 font-mono text-zinc-300 text-[11px]">${u.discord_id}</td>
+        <td class="px-5 py-3">${
           u.is_blacklisted
-            ? '<span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider bg-red-500/10 text-red-400 border border-red-500/20">Banned</span>'
-            : '<span class="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Active</span>'
+            ? '<span class="flex items-center gap-1.5 text-[11px] font-medium text-red-400"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Banned</span>'
+            : '<span class="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Active</span>'
         }</td>
-        <td class="px-6 py-4">${
+        <td class="px-5 py-3">${
           online
-            ? '<span class="inline-flex items-center gap-1.5 text-xs font-medium text-indigo-400"><span class="w-2 h-2 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span>Online</span>'
-            : '<span class="inline-flex items-center gap-1.5 text-xs text-slate-500"><span class="w-2 h-2 rounded-full bg-slate-700"></span>Offline</span>'
+            ? '<span class="flex items-center gap-1.5 text-[11px] font-medium text-blue-400"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Online</span>'
+            : '<span class="flex items-center gap-1.5 text-[11px] text-zinc-500"><span class="w-1.5 h-1.5 rounded-full bg-zinc-600"></span>Offline</span>'
         }</td>
-        <td class="px-6 py-4 font-mono text-slate-500 text-[10px] max-w-[120px] truncate" title="${u.hwid || '-'}">${u.hwid || '-'}</td>
-        <td class="px-6 py-4 text-slate-300 text-xs"><span class="bg-slate-800 px-2 py-1 rounded-md border border-slate-700">${u.hwid_resets_left ?? '-'}</span></td>
-        <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+        <td class="px-5 py-3 font-mono text-zinc-500 text-[10px] max-w-[120px] truncate" title="${u.hwid || '-'}">${u.hwid || '-'}</td>
+        <td class="px-5 py-3 text-zinc-400 text-xs">${u.hwid_resets_left ?? '-'}</td>
+        <td class="px-5 py-3 text-right space-x-2 whitespace-nowrap">
           <button onclick="toggleBan('${u.discord_id}', ${!u.is_blacklisted})"
-            class="${u.is_blacklisted ? 'bg-slate-800 hover:bg-slate-700 text-slate-300' : 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20'} border border-slate-700 transition-all rounded-lg px-3 py-1.5 text-xs font-medium">
-            ${u.is_blacklisted ? 'ปลดแบน' : 'ระงับใช้งาน'}
+            class="${u.is_blacklisted ? 'hover:bg-zinc-800 text-zinc-400' : 'hover:bg-red-500/10 text-zinc-400 hover:text-red-400'} border border-transparent transition-all rounded-md px-2.5 py-1 text-[11px] font-medium">
+            ${u.is_blacklisted ? 'Unban' : 'Ban'}
           </button>
           <button onclick="forceResetHwid('${u.discord_id}')"
-            class="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 transition-all rounded-lg px-3 py-1.5 text-xs font-medium">รีเซ็ต HWID</button>
+            class="hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-all rounded-md px-2.5 py-1 text-[11px] font-medium border border-transparent">Reset HWID</button>
           <button onclick="kickUser('${u.discord_id}')"
-            class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 transition-all rounded-lg px-3 py-1.5 text-xs font-medium ${
+            class="hover:bg-amber-500/10 text-zinc-400 hover:text-amber-500 transition-all rounded-md px-2.5 py-1 text-[11px] font-medium border border-transparent ${
               online ? '' : 'opacity-30 pointer-events-none'
-            }">เตะออก</button>
+            }">Kick</button>
         </td>`;
       tbody.appendChild(tr);
     });
 
-    // Update Stats
     document.getElementById('statTotalUsers').innerText = users.length;
-    document.getElementById('statOnlineUsers').innerHTML = `<span class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse shadow-[0_0_8px_rgba(99,102,241,0.8)]"></span> ${onlineCount}`;
+    document.getElementById('statOnlineUsers').innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500"></span> ${onlineCount}`;
     document.getElementById('usersEmpty').classList.toggle('hidden', users.length > 0);
   }
 
   async function toggleBan(discord_id, banned) {
     let reason = null;
     if (banned) {
-      reason = prompt('ระบุเหตุผลการแบน (ข้ามได้):') || 'No reason provided';
+      reason = prompt('Reason for ban (optional):') || 'No reason provided';
     }
     try {
       await apiCall('/api/admin/ban', 'POST', { discord_id, banned, reason });
-      showToast(banned ? 'ระงับบัญชีผู้ใช้เรียบร้อย' : 'ปลดแบนผู้ใช้เรียบร้อย');
+      showToast(banned ? 'User banned' : 'User unbanned');
       await loadUsers();
     } catch (e) {
       showToast(e.message, true);
@@ -425,10 +430,10 @@
   }
 
   async function forceResetHwid(discord_id) {
-    if (!confirm('ยืนยันบังคับรีเซ็ต HWID ให้ผู้ใช้นี้? (จะไม่หักโควตาของลูกค้า)')) return;
+    if (!confirm('Force reset HWID for this user?')) return;
     try {
       await apiCall('/api/admin/force-reset-hwid', 'POST', { discord_id });
-      showToast('รีเซ็ต HWID เรียบร้อย');
+      showToast('HWID reset successful');
       await loadUsers();
     } catch (e) {
       showToast(e.message, true);
@@ -436,22 +441,20 @@
   }
 
   async function kickUser(discord_id) {
-    const message = prompt('ข้อความแจ้งเตือนตอนเตะ (ข้ามได้):') || 'You have been disconnected by an admin.';
+    const message = prompt('Kick message (optional):') || 'You have been disconnected by an admin.';
     try {
       await apiCall('/api/admin/kick', 'POST', { discord_id, message });
-      showToast('ส่งคำสั่งเตะเรียบร้อย (ระบบจะเตะออกในรอบ heartbeat ถัดไป)');
+      showToast('Kick command sent');
       await loadUsers();
     } catch (e) {
       showToast(e.message, true);
     }
   }
 
-  // ---------- Init ----------
   if (ADMIN_KEY) {
     enterDashboard();
   }
   
-  // Auto-refresh users table if on that page
   setInterval(() => {
     if (ADMIN_KEY && !document.getElementById('page-users').classList.contains('hidden')) {
       loadUsers().catch(() => {});
