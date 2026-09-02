@@ -1,21 +1,4 @@
 require('dotenv').config();
-
-// ตรวจสอบค่าที่จำเป็นก่อนเริ่มเซิร์ฟเวอร์และ Discord client
-const REQUIRED_ENV = [
-  'SUPABASE_URL',
-  'SUPABASE_SERVICE_ROLE_KEY',
-  'CLIENT_SHARED_SECRET',
-  'ADMIN_API_KEY',
-  'DISCORD_TOKEN',
-  'API_URL',
-];
-
-const missingEnv = REQUIRED_ENV.filter((name) => !String(process.env[name] || '').trim());
-if (missingEnv.length > 0) {
-  console.error(`[STARTUP ERROR] Missing environment variables: ${missingEnv.join(', ')}`);
-  process.exit(1);
-}
-
 const ws = require('ws');
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
@@ -36,11 +19,6 @@ const {
 const axios = require('axios');
 
 const app = express();
-
-// Render ทำหน้าที่เป็น reverse proxy และส่ง X-Forwarded-For มาให้ Express
-// กำหนดเป็น 1 hop เพื่อให้ express-rate-limit อ่าน IP จริงได้อย่างถูกต้อง
-app.set('trust proxy', 1);
-
 app.use(express.json());
 app.use(express.static('public'));
 
@@ -608,9 +586,9 @@ app.listen(PORT, () => {
   console.log(`Key System API is running on port ${PORT}`);
 });
 
-const API_URL = String(process.env.API_URL).trim().replace(/\/$/, '');
-const CLIENT_SHARED_SECRET = String(process.env.CLIENT_SHARED_SECRET).trim();
-const ADMIN_API_KEY = String(process.env.ADMIN_API_KEY).trim();
+const API_URL = process.env.API_URL;
+const CLIENT_SHARED_SECRET = process.env.CLIENT_SHARED_SECRET;
+const ADMIN_API_KEY = process.env.ADMIN_API_KEY;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -634,17 +612,20 @@ async function callApi(endpoint, body, useAdminKey = false) {
   }
 }
 
-client.once('ready', () => {
-  console.log(`✅ Discord bot online as ${client.user.tag} (${client.user.id})`);
-  console.log(`🌐 API endpoint: ${API_URL}`);
+client.once('clientReady', () => {
+  console.log(`Logged in as ${client.user.tag}`);
 });
 
-client.on('error', (error) => {
-  console.error('[DISCORD CLIENT ERROR]', error);
+client.once('ready', () => {
+  console.log(`Logged in as ${client.user.tag}`);
 });
 
 client.on('shardError', (error) => {
-  console.error('[DISCORD SHARD ERROR]', error);
+  console.error('Discord websocket error:', error);
+});
+
+client.login(process.env.DISCORD_TOKEN).catch((err) => {
+  console.error('Discord login failed:', err.message);
 });
 
 client.on('interactionCreate', async (interaction) => {
@@ -857,15 +838,4 @@ client.on('interactionCreate', async (interaction) => {
   }
 });
 
-process.on('unhandledRejection', (reason) => {
-  console.error('[UNHANDLED REJECTION]', reason);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('[UNCAUGHT EXCEPTION]', error);
-});
-
-client.login(String(process.env.DISCORD_TOKEN).trim()).catch((error) => {
-  console.error('[DISCORD LOGIN FAILED]', error);
-  process.exitCode = 1;
-});
+client.login(process.env.DISCORD_TOKEN);
